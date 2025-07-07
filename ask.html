@@ -95,18 +95,17 @@
 
         function sendQuestion(question) {
             try {
-                // Create a hidden iframe to send the question
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.onload = () => {
-                    // Remove the iframe after it loads
-                    setTimeout(() => iframe.remove(), 100);
-                };
+                // Get existing questions or create new array
+                const questions = JSON.parse(localStorage.getItem('pendingQuestions') || '[]');
                 
-                // Add timestamp to prevent caching
-                const targetUrl = `https://100yearsoldgrandma.github.io/100yearsoldgrandma1/window.html#${encodeURIComponent(question)}&t=${Date.now()}`;
-                iframe.src = targetUrl;
-                document.body.appendChild(iframe);
+                // Add new question with timestamp
+                questions.push({
+                    text: question,
+                    timestamp: Date.now()
+                });
+                
+                // Save back to localStorage
+                localStorage.setItem('pendingQuestions', JSON.stringify(questions));
 
                 // Show success message
                 showMessage('Question sent to the machine...');
