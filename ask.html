@@ -67,8 +67,6 @@
         const input = document.querySelector('input');
         const message = document.querySelector('.message');
         const error = document.querySelector('.error');
-        let mainWindow = null;
-        const MAIN_WINDOW_URL = 'https://100yearsoldgrandma.github.io/100yearsoldgrandma1/window.html';
 
         function showMessage(text, isError = false) {
             const element = isError ? error : message;
@@ -79,46 +77,24 @@
             }, 2000);
         }
 
-        function openMainWindow() {
-            // If mainWindow is closed or null, open it
-            if (!mainWindow || mainWindow.closed) {
-                mainWindow = window.open(MAIN_WINDOW_URL, 'mainWindow');
-                if (!mainWindow) {
-                    showMessage('Please allow popups to connect to the machine', true);
-                    return false;
-                }
-            }
-            return true;
-        }
-
         function sendQuestion(question) {
-            if (!openMainWindow()) return;
-
             try {
-                // Add the question as a hash to avoid page reload
-                mainWindow.location.href = MAIN_WINDOW_URL + '#' + encodeURIComponent(question);
+                // Show sending message
                 showMessage('Question sent to the machine...');
+                
+                // Clear input
                 input.value = '';
+                
+                // Create the target URL with the question as a hash
+                const targetUrl = '../window.html#' + encodeURIComponent(question);
+                
+                // Open in a new tab/window
+                window.open(targetUrl, '_blank');
             } catch (err) {
                 console.error('Error sending question:', err);
                 showMessage('Error sending question. Please try again.', true);
-                mainWindow = null; // Reset the window reference
             }
         }
-
-        // Try to open main window when the page loads
-        window.addEventListener('load', () => {
-            if (!openMainWindow()) {
-                showMessage('Please click anywhere and allow popups to connect to the machine', true);
-            }
-        });
-
-        // Also try to open main window on first interaction
-        document.addEventListener('click', () => {
-            if (!mainWindow || mainWindow.closed) {
-                openMainWindow();
-            }
-        }, { once: true });
 
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -130,4 +106,5 @@
         });
     </script>
 </body>
+</html> 
 </html> 
