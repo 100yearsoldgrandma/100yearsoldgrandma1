@@ -75,21 +75,22 @@
             isProcessing = true;
 
             try {
-                // First try to send directly to parent window if it exists
-                if (window.opener && !window.opener.closed) {
-                    window.opener.location.hash = encodeURIComponent(question);
-                    showMessage('Question sent to the machine...');
-                    input.value = '';
+                // Store the question in localStorage
+                localStorage.setItem('pendingQuestion', question);
+                localStorage.setItem('questionTimestamp', Date.now().toString());
+                
+                showMessage('Question sent to the machine...');
+                input.value = '';
+                
+                // Wait a brief moment to ensure the message is visible
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Go back to the previous page if it exists, otherwise use a relative path
+                if (document.referrer && document.referrer.includes('window.html')) {
+                    window.location.href = document.referrer;
                 } else {
-                    // If no parent window, try to open a new one
-                    const mainWindow = window.open('window.html#' + encodeURIComponent(question));
-                    if (mainWindow) {
-                        showMessage('Question sent to the machine...');
-                        input.value = '';
-                    } else {
-                        // If popup was blocked, redirect instead
-                        window.location.href = 'window.html#' + encodeURIComponent(question);
-                    }
+                    // Go up one directory level and then to window.html
+                    window.location.href = '../window.html';
                 }
             } catch (err) {
                 console.error('Error sending question:', err);
