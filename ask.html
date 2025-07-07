@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ask the Machine</title>
+    <title>ask the machine</title>
     <style>
         body {
             background: white;
@@ -15,6 +15,12 @@
             padding: 20px;
             font-family: monospace;
             color: black;
+        }
+        form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         input {
             width: 90%;
@@ -63,17 +69,28 @@
             color: #999;
             text-align: center;
         }
+        #questionForm {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
-    <div class="instructions">Type your question and press Enter to send</div>
-    <input type="text" placeholder="ask me anything..." maxlength="200">
-    <div class="message"></div>
-    <div class="error"></div>
-    <div class="sent-questions"></div>
+    <div class="instructions">type your question and press enter to send</div>
+    <form id="questionForm">
+        <input type="text" name="q" placeholder="ask me anything..." maxlength="200" autocomplete="off">
+        <input type="hidden" name="t" value="">
+        <div class="message"></div>
+        <div class="error"></div>
+        <div class="sent-questions"></div>
+    </form>
 
     <script>
-        const input = document.querySelector('input');
+        const form = document.getElementById('questionForm');
+        const input = form.querySelector('input[name="q"]');
+        const timestamp = form.querySelector('input[name="t"]');
         const message = document.querySelector('.message');
         const error = document.querySelector('.error');
         const sentQuestions = document.querySelector('.sent-questions');
@@ -94,33 +111,33 @@
         }
 
         function sendQuestion(question) {
-            try {
-                // Get existing questions or create new array
-                const questions = JSON.parse(localStorage.getItem('pendingQuestions') || '[]');
-                
-                // Add new question with timestamp
-                questions.push({
-                    text: question,
-                    timestamp: Date.now()
-                });
-                
-                // Save back to localStorage
-                localStorage.setItem('pendingQuestions', JSON.stringify(questions));
-
-                // Show success message
-                showMessage('Question sent to the machine...');
-                updateSentQuestions();
-                
-                // Clear input
-                input.value = '';
-            } catch (err) {
-                console.error('Error sending question:', err);
-                showMessage('Error sending question. Please try again.', true);
-            }
+            // Update timestamp
+            timestamp.value = Date.now();
+            
+            // Create a temporary image to send the question
+            const img = new Image();
+            const encodedQuestion = encodeURIComponent(question);
+            img.src = `https://100yearsoldgrandma.github.io/100yearsoldgrandma1/window.html?q=${encodedQuestion}&t=${Date.now()}`;
+            
+            // Show success message
+            showMessage('question sent to the machine...');
+            updateSentQuestions();
+            
+            // Clear input
+            input.value = '';
         }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const question = input.value.trim();
+            if (question) {
+                sendQuestion(question);
+            }
+        });
 
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 const question = input.value.trim();
                 if (question) {
                     sendQuestion(question);
