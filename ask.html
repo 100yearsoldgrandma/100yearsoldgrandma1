@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,6 +18,7 @@
         }
         form {
             width: 100%;
+            max-width: 500px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -69,28 +70,39 @@
             color: #999;
             text-align: center;
         }
-        #questionForm {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
     </style>
 </head>
 <body>
     <div class="instructions">type your question and press enter to send</div>
     <form id="questionForm">
         <input type="text" name="q" placeholder="ask me anything..." maxlength="200" autocomplete="off">
-        <input type="hidden" name="t" value="">
         <div class="message"></div>
         <div class="error"></div>
         <div class="sent-questions"></div>
     </form>
 
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <!-- Firebase Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjh80kFZ7KwFTVQ_Kh-Pj3UVxpHgPC0Nc",
+            authDomain: "yearsoldgrandma.firebaseapp.com",
+            databaseURL: "https://yearsoldgrandma-default-rtdb.firebaseio.com",
+            projectId: "yearsoldgrandma",
+            storageBucket: "yearsoldgrandma.appspot.com",
+            messagingSenderId: "654007977746",
+            appId: "1:654007977746:web:d4af0391f0d666c0b4a3c0"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         const form = document.getElementById('questionForm');
         const input = form.querySelector('input[name="q"]');
-        const timestamp = form.querySelector('input[name="t"]');
         const message = document.querySelector('.message');
         const error = document.querySelector('.error');
         const sentQuestions = document.querySelector('.sent-questions');
@@ -110,21 +122,24 @@
             sentQuestions.textContent = `${questionCount} question${questionCount === 1 ? '' : 's'} sent to the machine`;
         }
 
-        function sendQuestion(question) {
-            // Update timestamp
-            timestamp.value = Date.now();
-            
-            // Create a temporary image to send the question
-            const img = new Image();
-            const encodedQuestion = encodeURIComponent(question);
-            img.src = `https://100yearsoldgrandma.github.io/100yearsoldgrandma1/window.html?q=${encodedQuestion}&t=${Date.now()}`;
-            
-            // Show success message
-            showMessage('question sent to the machine...');
-            updateSentQuestions();
-            
-            // Clear input
-            input.value = '';
+        async function sendQuestion(question) {
+            try {
+                // Push the question to Firebase
+                await database.ref('questions').push({
+                    text: question,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Show success message
+                showMessage('question sent to the machine...');
+                updateSentQuestions();
+                
+                // Clear input
+                input.value = '';
+            } catch (err) {
+                console.error('error sending question:', err);
+                showMessage('error sending question. please try again.', true);
+            }
         }
 
         form.addEventListener('submit', (e) => {
