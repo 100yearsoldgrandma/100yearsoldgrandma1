@@ -67,30 +67,21 @@
             element.classList.add('visible');
             setTimeout(() => {
                 element.classList.remove('visible');
-            }, 3000);
+            }, 2000);
         }
 
-        async function sendQuestion(question) {
+        function sendQuestion(question) {
             if (isProcessing) return;
             isProcessing = true;
 
             try {
-                // Store the question in localStorage
-                localStorage.setItem('pendingQuestion', question);
-                localStorage.setItem('questionTimestamp', Date.now().toString());
-                
-                showMessage('Question sent to the machine...');
-                input.value = '';
-                
-                // Wait a brief moment to ensure the message is visible
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Go back to the previous page if it exists, otherwise use a relative path
-                if (document.referrer && document.referrer.includes('window.html')) {
-                    window.location.href = document.referrer;
+                // Send the question to the parent window
+                if (window.opener) {
+                    window.opener.postMessage({ type: 'question', content: question }, '*');
+                    showMessage('Question sent to the machine...');
+                    input.value = '';
                 } else {
-                    // Go up one directory level and then to window.html
-                    window.location.href = '../window.html';
+                    showMessage('Cannot connect to the machine. Please try again.', true);
                 }
             } catch (err) {
                 console.error('Error sending question:', err);
