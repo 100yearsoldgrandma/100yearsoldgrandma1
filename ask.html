@@ -48,9 +48,16 @@
         .error.visible {
             opacity: 1;
         }
+        .instructions {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
+    <div class="instructions">Type your question and press Enter to send</div>
     <input type="text" placeholder="ask me anything..." maxlength="200">
     <div class="message"></div>
     <div class="error"></div>
@@ -59,7 +66,7 @@
         const input = document.querySelector('input');
         const message = document.querySelector('.message');
         const error = document.querySelector('.error');
-        let isProcessing = false;
+        let mainWindow = null;
 
         function showMessage(text, isError = false) {
             const element = isError ? error : message;
@@ -70,26 +77,37 @@
             }, 2000);
         }
 
+        function openMainWindow() {
+            // If mainWindow is closed or null, open it
+            if (!mainWindow || mainWindow.closed) {
+                mainWindow = window.open('window.html', 'mainWindow');
+                if (!mainWindow) {
+                    showMessage('Please allow popups to connect to the machine', true);
+                    return false;
+                }
+            }
+            return true;
+        }
+
         function sendQuestion(question) {
-            if (isProcessing) return;
-            isProcessing = true;
+            if (!openMainWindow()) return;
 
             try {
-                // Send the question to the parent window
-                if (window.opener) {
-                    window.opener.postMessage({ type: 'question', content: question }, '*');
-                    showMessage('Question sent to the machine...');
-                    input.value = '';
-                } else {
-                    showMessage('Cannot connect to the machine. Please try again.', true);
-                }
+                // Add the question as a hash to avoid page reload
+                mainWindow.location.hash = encodeURIComponent(question);
+                showMessage('Question sent to the machine...');
+                input.value = '';
             } catch (err) {
                 console.error('Error sending question:', err);
                 showMessage('Error sending question. Please try again.', true);
-            } finally {
-                isProcessing = false;
+                mainWindow = null; // Reset the window reference
             }
         }
+
+        // Open main window when the page loads
+        window.addEventListener('load', () => {
+            openMainWindow();
+        });
 
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
