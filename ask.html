@@ -53,6 +53,7 @@
             margin-bottom: 20px;
             font-size: 14px;
             color: #666;
+            max-width: 80%;
         }
     </style>
 </head>
@@ -67,6 +68,7 @@
         const message = document.querySelector('.message');
         const error = document.querySelector('.error');
         let mainWindow = null;
+        const MAIN_WINDOW_URL = 'https://100yearsoldgrandma.github.io/100yearsoldgrandma1/window.html';
 
         function showMessage(text, isError = false) {
             const element = isError ? error : message;
@@ -80,7 +82,7 @@
         function openMainWindow() {
             // If mainWindow is closed or null, open it
             if (!mainWindow || mainWindow.closed) {
-                mainWindow = window.open('window.html', 'mainWindow');
+                mainWindow = window.open(MAIN_WINDOW_URL, 'mainWindow');
                 if (!mainWindow) {
                     showMessage('Please allow popups to connect to the machine', true);
                     return false;
@@ -94,7 +96,7 @@
 
             try {
                 // Add the question as a hash to avoid page reload
-                mainWindow.location.hash = encodeURIComponent(question);
+                mainWindow.location.href = MAIN_WINDOW_URL + '#' + encodeURIComponent(question);
                 showMessage('Question sent to the machine...');
                 input.value = '';
             } catch (err) {
@@ -104,10 +106,19 @@
             }
         }
 
-        // Open main window when the page loads
+        // Try to open main window when the page loads
         window.addEventListener('load', () => {
-            openMainWindow();
+            if (!openMainWindow()) {
+                showMessage('Please click anywhere and allow popups to connect to the machine', true);
+            }
         });
+
+        // Also try to open main window on first interaction
+        document.addEventListener('click', () => {
+            if (!mainWindow || mainWindow.closed) {
+                openMainWindow();
+            }
+        }, { once: true });
 
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
