@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ask the Machine</title>
+    <style>
+        body {
+            background: black;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: monospace;
+            color: white;
+        }
+        input {
+            width: 90%;
+            padding: 20px;
+            font-size: 16px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-family: monospace;
+            margin-bottom: 20px;
+        }
+        input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        .message {
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .message.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" placeholder="ask me anything..." maxlength="200">
+    <div class="message"></div>
+
+    <script>
+        const input = document.querySelector('input');
+        const message = document.querySelector('.message');
+
+        function showMessage() {
+            message.textContent = 'Question sent to the machine...';
+            message.classList.add('visible');
+            setTimeout(() => {
+                message.classList.remove('visible');
+            }, 2000);
+        }
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const question = input.value.trim();
+                if (question) {
+                    // Store the question in localStorage with timestamp
+                    const questions = JSON.parse(localStorage.getItem('questions') || '[]');
+                    questions.push({
+                        text: question,
+                        time: Date.now()
+                    });
+                    localStorage.setItem('questions', JSON.stringify(questions));
+                    
+                    input.value = '';
+                    showMessage();
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
